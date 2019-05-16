@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t tarotar/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run tarotar/react-test sh -c 'CI=true npm test'
+
+after_success:
+  - docker build -t tarotar/multi-client ./client
+  - docker build -t tarotar/multi-nginx ./nginx
+  - docker build -t tarotar/multi-server ./server
+  - docker build -t tarotar/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push tarotar/multi-client
+  - docker push tarotar/multi-nginx
+  - docker push tarotar/multi-server
+  - docker push tarotar/multi-worker
